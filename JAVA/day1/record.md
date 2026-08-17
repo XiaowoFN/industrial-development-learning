@@ -1279,3 +1279,107 @@ import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 ```
 
 当前项目的 JDK 中没有这个包，而且代码也没有使用它。这个错误与 POM 的忽略状态无关；删除该无效导入后即可继续验证编译。
+
+## 二十、错误：找不到或无法加载主类
+
+本次运行 `hl.psvm` 时出现：
+
+```text
+错误: 找不到或无法加载主类 hl.psvm
+```
+
+### hl.psvm 表示什么
+
+源码中写着：
+
+```java
+package hl;
+
+public class psvm {
+    public static void main(String[] args) {
+    }
+}
+```
+
+因此类的完整名称是：
+
+```text
+hl.psvm
+```
+
+其中 `hl` 是包名，`psvm` 是类名。编译后应生成：
+
+```text
+target/classes/hl/psvm.class
+```
+
+运行时，JVM 的 classpath 必须包含 `target/classes` 这一层，JVM 才能根据 `hl.psvm` 找到 `hl/psvm.class`。
+
+### 常见原因
+
+1. 源码存在编译错误，没有生成最新的 `.class` 文件。
+2. `package` 与目录或运行配置中的主类名称不一致。
+3. IDEA 运行配置选择了错误或已经不存在的模块。
+4. Maven 项目没有正确加载，`src/main/java` 未被识别为源码目录。
+5. `.class` 存在，但 classpath 没有包含它所在目录。
+
+### 本次实际原因
+
+本次同时存在两个问题。
+
+第一个问题是 `psvm.java` 曾包含无效导入：
+
+```java
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
+```
+
+该包在当前 JDK 中不存在，导致 Maven 编译失败，最新的 `psvm.class` 无法生成。该无效导入现已删除。
+
+第二个问题是卸载和重新导入模块之后，IDEA 中存在两个旧的 `psvm` 临时运行配置：
+
+- 一个运行配置使用模块 `java`。
+- 一个运行配置仍然使用已经不存在的模块 `day1`。
+
+选择引用旧模块的运行配置时，IDEA 不能构造正确的 classpath，所以 JVM 找不到 `hl.psvm`。
+
+### 恢复步骤
+
+1. 打开 `View -> Tool Windows -> Maven`。
+2. 确保 `day1` 没有被忽略；如果是灰色，右键选择 `Unignore Project`。
+3. 如果 Maven 窗口中没有 `day1`，点击 `Link Maven Projects` 并选择 `day1/pom.xml`。
+4. 点击 `Reload All Maven Projects`。
+5. 打开 `Run -> Edit Configurations`。
+6. 删除旧的 `psvm` 和 `psvm (1)` 临时运行配置。
+7. 打开 `psvm.java`，点击 `main` 方法左侧的绿色运行按钮。
+8. 选择 `Run 'psvm.main()'`，让 IDEA 根据当前模块创建新配置。
+
+新运行配置中的主类应为：
+
+```text
+hl.psvm
+```
+
+`Use classpath of module` 应选择重新导入后包含 `src/main/java` 的 Maven 模块。
+
+### 命令行验证方法
+
+先编译：
+
+```powershell
+mvn compile
+```
+
+再运行：
+
+```powershell
+java -cp target/classes hl.psvm
+```
+
+本次验证结果：
+
+- Maven 编译成功。
+- 已生成最新的 `target/classes/hl/psvm.class`。
+- `javap` 确认类名是 `hl.psvm`，并且存在标准 `main` 方法。
+- 命令行运行成功，输出 `sdsd` 和 `i10`。
+
+因此 Java 源码和 Maven 输出现在已经正常。如果 IDEA 仍报告主类找不到，剩余问题就是旧的 IDEA 模块或运行配置，应按上面的步骤重新加载并重建运行配置。
