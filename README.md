@@ -348,7 +348,7 @@ Vue 3作为后续新项目开发的主要前端技术。
 * PostgreSQL查询MCP Server
 * MES工业AI Agent
 
-## 建议仓库结构
+## 仓库结构
 
 ```text
 industrial-development-learning/
@@ -374,20 +374,6 @@ industrial-development-learning/
 ├── 20-agent-mcp/
 └── README.md
 ```
-
-## 当前学习进度
-
-当前正在学习和了解：
-
-```text
-Git与GitHub
-SQL基础
-PostgreSQL
-Redis基础概念
-工业软件全栈开发路线
-```
-
-后续将按照学习路线持续更新笔记、代码和实践项目。
 
 ## 学习方法
 
