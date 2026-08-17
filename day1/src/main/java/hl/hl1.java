@@ -1,6 +1,6 @@
 package hl;
 import java.util.Scanner;
-import java.util.logging.Logger;12
+import java.util.logging.Logger;
 public class hl1 {
 
     public static void main(String[] args) {
