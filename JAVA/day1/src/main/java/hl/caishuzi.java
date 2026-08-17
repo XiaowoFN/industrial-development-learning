@@ -5,20 +5,19 @@ import java.util.Scanner;
 
 public class caishuzi {
     public static void main(String[] args) {
-        while(true){
+        while (true) {
             Random rand = new Random();
-            int a = rand.nextInt(100)+1;
+            int a = rand.nextInt(100) + 1;
             System.out.println("请输入数据");
-            while(true){
+            while (true) {
                 {
                     Scanner sc = new Scanner(System.in);
                     int i = sc.nextInt();
-                    if(i<a) {
+                    if (i < a) {
                         System.out.println("输入的数据小了");
-                    }else if(i>a){
+                    } else if (i > a) {
                         System.out.println("输入的数据大了");
-                    }else
-                    {
+                    } else {
                         System.out.println("猜对了恭喜！");
                         break;
                     }

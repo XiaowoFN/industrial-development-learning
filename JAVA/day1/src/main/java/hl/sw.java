@@ -4,13 +4,12 @@ import java.util.Scanner;
 
 public class sw {
     public static void main(String[] args) {
-        System.out .println("请输入成绩");
+        System.out.println("请输入成绩");
         Scanner sc = new Scanner(System.in);
 
-        while(true){
+        while (true) {
             int a = sc.nextInt();
-            switch (a)
-            {
+            switch (a) {
                 case 1:
                     System.out.println("星期一");
                     break;
