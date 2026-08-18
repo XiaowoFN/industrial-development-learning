@@ -7,6 +7,8 @@
           <value>
             <TabSessionState>
               <option name="provider" value="codex" />
+              <option name="sessionId" value="01a01301-c987-7650-8855-445ab173c76d" />
+              <option name="cwd" value="E:\study\industrial-development-learning" />
               <option name="model" value="gpt-5.6-sol" />
               <option name="permissionMode" value="default" />
             </TabSessionState>
