@@ -359,3 +359,217 @@ git rm --cached -r path/to/目录
 ```
 
 其中 `*.iml` 已经可以匹配任意目录下的 `.iml` 文件，通常更简洁。若 `.iml` 文件以前已经被跟踪，需要先执行 `git rm --cached 文件路径`，再提交忽略规则。
+
+### 14. Git 忽略与 IDEA 排除的区别
+
+IDEA 提示 `Some of the ignored directories are not excluded from analysis and search` 的意思是：某些目录已经被 Git 的 `.gitignore` 忽略，不会参与提交，但 IDEA 仍会对它们进行项目分析、索引和搜索。
+
+两者作用不同：
+
+```text
+.gitignore       决定文件是否出现在 Git 提交中
+IDEA Excluded    决定文件是否参与代码分析、索引和搜索
+```
+
+对于 Maven/Java 项目，`target` 是编译生成目录，通常建议在 IDEA 中排除：
+
+1. 在左侧 Project 窗口找到 `target`。
+2. 右键目录，选择 `Mark Directory As -> Excluded`。
+3. 如果提示条中有 `Exclude ignored files from project`，也可以直接点击它，让 IDEA 自动排除被 Git 忽略的目录。
+
+也可以通过 `File -> Project Structure -> Modules -> Sources` 选择目录并标记为 `Excluded`。排除后，目录仍保留在电脑上，不会被删除；只是不会参与 IDEA 的代码补全、检查、导航和搜索。
+
+因此，`.gitignore` 中保留下面的规则即可：
+
+```gitignore
+**/.idea/
+**/target/
+*.iml
+```
+
+## 2026-08-31
+
+### 15. 当前代码文件与学习进度
+
+今天开始学习 Java 面向对象和类、对象的关系。`day3/src/main/java/hw` 下目前有这些练习文件：
+
+```text
+hw.java       最基础的 main 方法和控制台输出
+hulue.java    最基础的 Hello World 输出
+fangfa.java   方法、重载、参数传递、数组遍历
+debug.java    Debug、循环、Scanner 输入、求最大值
+pass7.java    逢七过练习
+dafen.java    去掉最高分和最低分后求平均分
+phone.java    手机类：成员变量和成员方法
+student.java  学生类：成员变量和成员方法
+classL.java   创建对象并调用对象的属性和行为
+```
+
+### 16. `fangfa.java` 的数组遍历
+
+当前文件新增了 `viewArray` 方法，用于按照数组格式打印元素：
+
+```java
+public static void viewArray(int[] arr) {
+    System.out.print("[");
+    for (int i = 0; i < arr.length; i++) {
+        if (i == arr.length - 1) {
+            System.out.print(arr[i]);
+        } else {
+            System.out.print(arr[i] + ", ");
+        }
+    }
+    System.out.println("]");
+}
+```
+
+`i == arr.length - 1` 用来判断当前元素是不是最后一个，避免最后一个元素后面多打印逗号。数组的最后一个索引永远是 `length - 1`。
+
+`fangfa.java` 的 `main` 中还演示了：数组可以作为参数传给方法，方法能够读取数组中的元素；`isEvenNumber()` 使用 `while (true)` 持续读取输入，输入奇数后通过 `break` 退出循环。
+
+### 17. 类和对象的基本概念
+
+相关文件：`phone.java`、`student.java`、`classL.java`
+
+- 类是对一类具有共同属性和行为的事物的抽象，也是对象的数据类型。
+- 对象是类具体存在的实例。
+- 属性在 Java 类中通常用成员变量表示。
+- 行为在 Java 类中通常用成员方法表示。
+
+`phone.java`：
+
+```java
+public class phone {
+    String brand;
+    int price;
+
+    public void call() {
+        System.out.println("打电话");
+    }
+
+    public void sendMessage() {
+        System.out.println("发短信");
+    }
+}
+```
+
+这里 `brand` 和 `price` 是成员变量，`call()` 和 `sendMessage()` 是成员方法。
+
+`student.java` 也使用同样的结构：`name`、`age` 表示学生属性，`study()`、`doHomework()` 表示学生行为。
+
+### 18. 创建对象和调用成员
+
+`classL.java` 中使用 `new` 创建对象：
+
+```java
+phone p = new phone();
+p.brand = "huawei";
+p.price = 10245;
+p.sendMessage();
+p.call();
+```
+
+- `phone p`：声明一个 `phone` 类型的引用变量 `p`。
+- `new phone()`：创建一个 `phone` 对象。
+- `p.brand`、`p.price`：访问对象的成员变量。
+- `p.sendMessage()`、`p.call()`：调用对象的成员方法。
+
+`new` 创建的对象通常位于堆内存，引用变量 `p` 位于栈帧中；变量 `p` 保存的是指向堆中对象的引用。
+
+同一个类可以创建多个对象：
+
+```java
+student s = new student();
+student g = new student();
+```
+
+`s` 和 `g` 是两个不同的对象，分别拥有自己的成员变量。直接打印对象（如 `System.out.println(s)`）默认会打印对象的类名和哈希值形式；如果想打印有意义的内容，可以重写 `toString()` 方法。
+
+### 19. 当前阶段需要注意的代码规范
+
+- Java 类名通常使用大写字母开头的 PascalCase，例如 `Phone`、`Student`、`ClassL`；当前练习中的小写类名可以运行，但不符合常用命名规范。
+- 成员变量最好使用 `private` 修饰，再通过构造方法、Getter 和 Setter 控制访问；当前练习使用的是默认访问权限，适合入门演示。
+- 创建对象后如果没有给成员变量赋值，数值类型默认是 `0`，引用类型默认是 `null`，`boolean` 默认是 `false`。
+- 一个 `.java` 文件通常只放一个 `public` 类，且文件名必须和 `public` 类名完全一致。
+
+### 20. 当前学习路线
+
+```text
+方法基础
+  -> 方法重载与参数传递
+  -> 数组和循环练习
+  -> Scanner 输入与 Debug 调试
+  -> 类、对象、成员变量、成员方法
+  -> 下一步：封装、构造方法、this、private、Getter/Setter
+```
+
+### 21. `classL.java` 最新练习：引用指向同一个对象
+
+`classL.java` 最近新增了成员变量备注，并补充了对象引用赋值：
+
+```java
+student s = new student();
+s.name = "shide";
+
+student g = s;
+g.name = "genshi";
+
+System.out.println(s.name); // genshi
+```
+
+`student g = s` 不会创建新的 `student` 对象，而是把 `s` 中保存的引用复制给 `g`。因此 `s` 和 `g` 指向堆中的同一个对象：
+
+```text
+s ──┐
+    ├──> 同一个 student 对象
+g ──┘
+```
+
+通过 `g.name` 修改对象后，从 `s.name` 读取到的也是修改后的值。这个例子进一步说明：引用类型赋值复制的是引用值，不是对象本身。
+
+运行结果中的 `shide`、`genshi`、`genshi`，分别对应修改前通过 `g` 读取、修改后通过 `g` 读取、修改后通过 `s` 读取。
+
+`System.out.println(s)` 和 `System.out.println(g)` 输出相同的 `hw.student@...`，这是因为两个变量指向同一个对象，而 `student` 当前没有重写 `toString()`。
+
+### 22. 成员变量与局部变量
+
+- 成员变量：定义在类中、方法外，例如 `student` 的 `name`、`age`，属于对象；没有显式赋值时会获得默认值，如 `int` 为 `0`，引用类型为 `null`。
+- 局部变量：定义在方法、循环或代码块内部，例如 `main` 中的 `student s`、`student g`，只在对应作用域内有效；局部变量必须先赋值才能使用。
+
+`phone p`、`student s` 是局部的引用变量，`brand`、`price`、`name`、`age` 是对象的成员变量。通过对象引用加点号访问成员，例如 `p.brand`、`s.name`。
+
+### 23. 面向对象学习进度更新
+
+```text
+[已完成] 理解类是对象的抽象、对象是类的实例
+[已完成] 定义成员变量和成员方法
+[已完成] 使用 new 创建对象并调用成员
+[已完成] 区分基本类型值传递和引用类型引用传递
+[已完成] 理解两个引用可以指向同一个对象
+[进行中] 封装、构造方法、this、private、Getter/Setter
+```
+
+### 24. Debug 调试经验：方法名写错导致逻辑未按预期执行
+
+今天通过断点调试排查了一次代码问题。虽然自己检查后认为判断逻辑正确，并且引入了 `boolean` 变量辅助判断，但程序仍然没有得到预期结果。
+
+使用 Debug 模式后，按照程序的实际执行过程逐步查看：
+
+1. 在关键代码行设置断点。
+2. 使用 Debug 模式启动程序。
+3. 通过单步执行观察每一行是否执行，以及程序跳转到了哪个方法。
+4. 查看变量值，确认 `boolean` 判断结果是否符合预期。
+5. 最终发现问题不是判断逻辑，而是方法名写错，调用的不是自己以为的那个方法。
+
+这次经验说明：
+
+- 代码“看起来逻辑正确”不代表实际执行路径正确。
+- Debug 不只是查看变量值，也要确认程序是否进入了正确的方法。
+- 排查问题时应同时检查方法名、参数、返回值和调用顺序。
+- 断点调试可以把“猜测错误原因”变成“观察实际执行过程”。
+
+当前已经掌握的基础 Debug 流程：
+
+```text
+设置断点 -> Debug 启动 -> 单步执行 -> 查看变量 -> 检查调用方法 -> 定位错误
+```
