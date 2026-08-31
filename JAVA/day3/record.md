@@ -573,3 +573,99 @@ g ──┘
 ```text
 设置断点 -> Debug 启动 -> 单步执行 -> 查看变量 -> 检查调用方法 -> 定位错误
 ```
+
+### 25. `private1.java` 与 `private1test.java`：封装、构造方法和 `this`
+
+最近新增的代码已经进入面向对象三大特征中的封装阶段。
+
+#### `private` 封装成员变量
+
+```java
+public class private1 {
+    private int age;
+    private String name;
+}
+```
+
+`private` 表示成员变量只能在当前类内部直接访问，外部测试类不能直接写 `p.age` 或 `p.name`。这样可以避免外部代码随意修改对象数据，再通过公开的方法控制数据是否合法，这就是封装的基本思想。
+
+#### `this` 关键字
+
+```java
+public private1(int age, String name) {
+    this.age = age;
+    this.name = name;
+}
+```
+
+当成员变量和参数同名时，`this.age` 表示当前对象的成员变量，`age` 表示构造方法接收的参数。`this` 代表当前正在操作的对象。
+
+#### 构造方法
+
+当前类定义了无参和有参两个构造方法：
+
+```java
+public private1() {}
+
+public private1(int age, String name) {
+    this.age = age;
+    this.name = name;
+}
+```
+
+- 构造方法名必须和类名相同。
+- 构造方法没有返回值类型，连 `void` 也不能写。
+- `new private1()` 调用无参构造方法。
+- `new private1(32, "yuanshen")` 调用有参构造方法，并初始化成员变量。
+- 如果完全没有定义构造方法，Java 会自动提供无参构造方法。
+- 只要自己定义了任意构造方法，系统就不会再自动提供无参构造方法；如果还需要 `new private1()`，就必须自己显式写出无参构造方法。
+
+#### 使用方法控制数据
+
+```java
+public void setAge(int age) {
+    if (age < 0 || age > 120) {
+        t = false;
+    } else {
+        this.age = age;
+    }
+}
+```
+
+`setAge` 在赋值前检查年龄范围，体现了封装中“隐藏细节、控制访问”的思想。`setName` 负责修改姓名，`showName`、`showAge`、`show` 负责输出对象信息。
+
+测试类中的调用：
+
+```java
+private1 p = new private1();
+p.setAge(100);
+p.getAge();          // 100
+p.setName("cyr");
+p.showName();        // name:cyr
+
+private1 p2 = new private1(32, "yuanshen");
+p2.show();           // yuanshen32
+```
+
+运行结果已验证为：
+
+```text
+100
+name:cyr
+yuanshen32
+```
+
+#### 当前学习进度更新
+
+```text
+[已完成] 类、对象、成员变量、成员方法
+[已完成] 引用变量和同一对象
+[已完成] private 封装成员变量
+[已完成] 使用 this 区分成员变量和参数
+[已完成] 无参构造方法和有参构造方法
+[进行中] 完善 Setter 数据校验，学习 Getter、继承和多态
+```
+
+### 26. 代码同步检查记录
+
+本次检查了 `day3/src/main/java` 下的全部 Java 文件。最近修改的 `classL.java`、`private1.java` 和 `private1test.java` 内容均已在前面的章节记录；本次检查没有发现尚未记录的新建或修改代码。
