@@ -299,3 +299,63 @@ git rm -r --cached .idea
 这只会从仓库当前版本中删除文件，历史提交中仍然可以看到旧文件。如果其中曾包含密码、令牌等敏感信息，需要立即作废并更换对应凭据，然后另行清理 Git 历史；普通 IDEA 项目配置通常不需要改写历史。
 
 在 IDEA 的 Commit 面板中取消文件勾选，只能让文件不参加当前这一次提交，不能实现永久忽略。
+
+### 13. Git：忽略特定后缀的文件
+
+在 `.gitignore` 中使用 `*` 匹配任意文件名。例如：
+
+```gitignore
+*.class
+*.log
+*.tmp
+```
+
+含义分别是忽略所有 Java 编译生成的 `.class` 文件、日志文件和临时文件，不限于某个目录。
+
+常见写法：
+
+```gitignore
+**/*.class       # 任意目录下的 .class 文件
+build/           # 名为 build 的目录及其内容
+/config.local    # 只忽略仓库根目录下的 config.local
+test?.txt        # ? 匹配一个字符，例如 test1.txt
+```
+
+当前仓库的根目录 `.gitignore` 使用了：
+
+```gitignore
+**/.idea/
+**/target/
+```
+
+因此任意层级目录下的 `.idea` 和 `target` 目录都会被忽略。
+
+注意：忽略规则只对尚未被 Git 跟踪的文件立即生效。如果某种后缀的文件已经提交过，需要先从索引中移除，但保留本地文件：
+
+```bash
+git rm --cached path/to/file.class
+```
+
+要取消跟踪某个目录下所有已跟踪的该后缀文件，可以使用：
+
+```bash
+git rm --cached -r path/to/目录
+```
+
+然后提交 `.gitignore` 和删除记录，之后新生成的对应文件就不会再出现在 Commit 列表中。
+
+补充：`**/.iml/` 表示匹配目录名正好为 `.iml` 的文件夹，而且末尾 `/` 明确表示目录；它不会匹配 `xxx.iml` 文件。
+
+忽略 IntelliJ IDEA 的 `.iml` 文件应该写：
+
+```gitignore
+*.iml
+```
+
+或者写成：
+
+```gitignore
+**/*.iml
+```
+
+其中 `*.iml` 已经可以匹配任意目录下的 `.iml` 文件，通常更简洁。若 `.iml` 文件以前已经被跟踪，需要先执行 `git rm --cached 文件路径`，再提交忽略规则。
