@@ -451,6 +451,106 @@ System.out.println(array.get(i).getName() + array.get(i).getAge());
 
 另外，`Scanner.nextInt()` 读取数字后不会自动吃掉行尾换行符；下一次调用 `nextLine()` 可能读到空字符串。混合使用时要额外调用一次 `sc.nextLine()`，或者全部使用 `nextLine()` 后再用 `Integer.parseInt()` 转换。
 
+### 21. `StudentManage.Management`：菜单选择后自动进入下一个功能
+
+相关文件：`src/main/java/StudentManage/Management.java`、`Student.java`
+
+当前菜单使用 `while (true)` 和 `switch`：
+
+```java
+switch (i) {
+    case 1:
+        insertStudent(studentArray);
+    case 2:
+        deleteStudent(studentArray);
+    case 3:
+        viewStudent(studentArray);
+    case 4:
+        break;
+}
+```
+
+选择 `1` 后会自动继续执行 `case 2` 和 `case 3`，原因是每个 `case` 后都没有 `break`。这种行为叫 `switch` 的 case 穿透（fall-through）。`break` 会结束当前 `switch`，然后回到外层 `while`，重新显示菜单。
+
+菜单功能应在每个分支末尾结束当前 `switch`：
+
+```java
+switch (i) {
+    case 1:
+        insertStudent(studentArray);
+        break;
+    case 2:
+        deleteStudent(studentArray);
+        break;
+    case 3:
+        viewStudent(studentArray);
+        break;
+    case 4:
+        return; // 直接结束 main，退出系统
+    default:
+        System.out.println("没有这个选项");
+}
+```
+
+注意：`case 4` 里的普通 `break` 只会跳出 `switch`，不会跳出 `while (true)`；如果想退出整个菜单循环，可以使用 `return`，或者使用一个布尔变量控制循环。
+
+### 22. 学生管理菜单的结构问题
+
+`studentArray` 和 `Scanner input` 当前定义在 `while` 循环内部：
+
+```java
+while (true) {
+    ArrayList<Student> studentArray = new ArrayList<>();
+    Scanner input = new Scanner(System.in);
+    // ...
+}
+```
+
+这样每次重新显示菜单都会创建一个新的空集合，之前添加的学生会丢失；反复创建多个 Scanner 读取同一个 `System.in` 也可能造成输入缓冲问题。更合理的结构是把它们放到循环外，只创建一次：
+
+```java
+Scanner input = new Scanner(System.in);
+ArrayList<Student> studentArray = new ArrayList<>();
+
+while (true) {
+    int choice = input.nextInt();
+    // 根据 choice 调用功能
+}
+```
+
+另外，`Student.id` 定义为 `String`，删除方法却用 `int id = sc.nextInt()` 并执行 `array.remove(id + 1)`，这实际上是按索引删除，不是按学生 id 删除。后续应改为读取字符串 id，再根据 `Student.getId()` 查找匹配对象。
+
+### 23. `Management.java` 修正后的菜单判断
+
+当前代码已经为 `case 1`、`case 2`、`case 3` 添加了 `break`，并将 `case 4` 改为 `return`：
+
+```java
+case 1:
+    insertStudent(studentArray);
+    break;
+case 2:
+    deleteStudent(studentArray);
+    break;
+case 3:
+    viewStudent(studentArray);
+    break;
+case 4:
+    return;
+```
+
+这样选择一个功能后会结束当前 `switch`，回到 `while` 顶部重新显示菜单；选择 4 则直接结束 `main`。
+
+但当前 `studentArray` 和 `Scanner input` 仍定义在 `while` 内：
+
+```java
+while (true) {
+    ArrayList<Student> studentArray = new ArrayList<>();
+    Scanner input = new Scanner(System.in);
+}
+```
+
+这会让每次循环都创建空集合，之前添加的学生信息无法保留。后续应把集合和 Scanner 移到 `while` 外，只创建一次。
+
 ### 18. `ArrayList.remove`：为什么两个 `javaee` 只删除一个
 
 在 `arraylistbasic.java` 中：
@@ -577,3 +677,157 @@ Esc              退出多光标编辑
 ```
 
 如果快捷键无效，可以按 `Ctrl + Shift + A` 搜索 `Select All Occurrences`，或者到 `Settings -> Keymap` 查看当前快捷键配置。
+
+### 24. `Management.java` 复查：当前剩余问题
+
+本次复查确认：`studentArray` 和主 `input` 已经移到 `while` 外，`case 1/2/3` 的 `break` 以及 `case 4` 的 `return` 也已经修正，代码可以通过编译。
+
+仍需注意以下问题：
+
+1. `insertStudent` 和 `deleteStudent` 内部又分别创建了新的 `Scanner`。多个 Scanner 同时读取同一个 `System.in`，容易产生输入缓冲问题；而且主菜单使用 `nextInt()` 后，行尾换行符仍留在输入流中，添加学生时第一次 `nextLine()` 可能读到空字符串。推荐只创建一个 Scanner，并把它作为参数传入各个方法；或者统一使用 `nextLine()` 再转换数字。
+2. `deleteStudent` 中的 `array.remove(id - 1)` 删除的是索引为 `id - 1` 的元素，不是 `Student.id` 等于输入值的学生。输入不存在的 ID 时还可能抛出 `IndexOutOfBoundsException`。
+3. 集合为空时选择删除，也会发生索引越界；删除前应先判断集合是否为空以及是否找到匹配 ID。
+4. `switch` 没有 `default` 分支，无效菜单输入时没有提示；`nextInt()` 遇到非数字还可能抛出 `InputMismatchException`。
+5. `main` 中的 `Student student = new Student();` 没有被使用，可以删除；菜单代码外层单独的大括号也没有必要。
+6. `Student.age` 当前是 `String`。如果年龄需要比较、排序或计算，建议改成 `int`；如果只做原样保存，使用 `String` 也能运行。
+7. `viewStudent` 拼接字段时没有分隔符，例如会输出 `001张三18北京`，建议用空格或标签分隔。
+
+### 25. `Management.java`：按学生 ID 删除的实现
+
+已将菜单和方法改为共用一个 `Scanner`，菜单使用 `Integer.parseInt(input.nextLine())`，避免 `nextInt()` 留下换行符。
+
+删除方法现在读取字符串 ID，然后遍历集合比较每个学生的 ID：
+
+```java
+public static void deleteStudent(ArrayList<Student> array, Scanner sc) {
+    System.out.println("请输入想要删除学生的id");
+    String id = sc.nextLine();
+
+    for (int i = 0; i < array.size(); i++) {
+        if (id.equals(array.get(i).getId())) {
+            array.remove(i);
+            System.out.println("删除成功");
+            return;
+        }
+    }
+
+    System.out.println("未找到该学生");
+}
+```
+
+这里的 `i` 是集合索引，`array.get(i).getId()` 才是学生的业务 ID。找到匹配学生后使用 `array.remove(i)` 删除该索引位置的对象；找不到时不删除并提示用户。
+
+调用时把主方法中的同一个 Scanner 传入：
+
+```java
+deleteStudent(studentArray, input);
+```
+
+不能再写 `array.remove(id - 1)`，因为那是把用户输入的学生 ID 当成集合索引，只有在 ID 恰好从 1 连续编号时才可能碰巧正确。
+
+本次已用“添加一个学生 -> 查看 -> 输入该学生 ID 删除 -> 再查看”的流程验证，删除成功且不会自动删除其他学生。
+
+### 26. `Integer.parseInt(input.nextLine())` 的含义
+
+菜单第 19 行：
+
+```java
+int i = Integer.parseInt(input.nextLine());
+```
+
+执行顺序从括号最里面开始：
+
+1. `input.nextLine()` 读取用户输入的一整行，结果是 `String`，例如输入 `1` 得到字符串 `"1"`。
+2. `Integer.parseInt("1")` 把字符串数字转换为基本类型 `int`，得到数字 `1`。
+3. 将数字保存到变量 `i`，供 `switch (i)` 判断菜单选项。
+
+拆开写完全等价：
+
+```java
+String text = input.nextLine();
+int i = Integer.parseInt(text);
+```
+
+这里使用 `nextLine()` 而不是 `nextInt()`，是为了让整个程序统一按行读取输入，避免 `nextInt()` 不读取行尾换行符，导致后面的 `nextLine()` 读到空字符串。
+
+如果用户输入的不是整数，例如 `abc`，`Integer.parseInt()` 会抛出 `NumberFormatException`；后续可以使用异常处理或输入校验给出友好提示。
+
+### 27. 阶段评估：学生管理系统体现的掌握程度
+
+`Student.java` 和 `Management.java` 基本由自己完成，并且能够通过编译。这两个文件已经证明对以下知识具备基础应用能力：
+
+- 能把学生抽象为 `Student` 类，并定义 `id`、`name`、`age`、`address` 成员变量。
+- 能使用 `private`、Getter、Setter 和构造方法完成基础封装。
+- 能使用 `new Student()` 创建对象并为对象赋值。
+- 能用 `ArrayList<Student>` 保存多个对象，理解泛型约束集合元素类型。
+- 能把集合和 Scanner 作为参数传给方法。
+- 能把添加、删除、修改、查看拆成不同方法，体现了方法复用和职责划分。
+- 能遍历集合，并通过 `getId()` 找到具体学生。
+- 能根据业务 ID 删除对象，而不是错误地把 ID 当作集合索引。
+- 能用 `while + switch` 实现持续运行的菜单程序。
+
+因此当前水平可以表述为：
+
+```text
+类和对象：基本掌握
+方法定义、参数和调用：基本掌握
+封装、Getter、Setter：基本掌握
+ArrayList 存储和遍历对象：基本掌握
+简单增删改查业务：能够独立实现
+异常和边界处理：仍需加强
+```
+
+当前代码中仍能看到需要继续练习的细节：
+
+1. 菜单第 4 项文字仍写成“查看所有学生信息”，实际功能是修改学生信息。
+2. 查看学生时地址前多拼接了字符 `2`。
+3. 修改学生成功后没有提示；找不到 ID 时也没有提示。
+4. 添加学生时没有检查 ID 是否重复。
+5. 菜单缺少 `default`，非数字输入也没有异常处理。
+6. `age` 使用 `String`，还没有做年龄范围和数字校验。
+7. 代码中的额外大括号和重复的 `array.get(i)` 可以继续整理。
+
+这些问题不代表没有掌握类、方法、对象和集合，而是说明已经进入下一阶段：从“功能能够运行”提升到“代码能处理无效输入、重复数据和异常情况”。
+
+下一步可以独立完成以下改进，用来检验是否真正熟练：
+
+```text
+添加时拒绝重复 ID
+修改/删除时正确提示找不到学生
+空集合查看时给出提示
+错误菜单输入后不崩溃
+将按 ID 查找学生的重复循环提取成公共方法
+```
+
+### 28. 当前 Java 基础阶段的学习判断
+
+Java 语法和标准库还有较多内容需要继续学习，例如异常、IO、泛型、继承、多态、接口、抽象类、集合体系、Lambda、Stream、日期时间、线程和网络等。不过已经掌握的类、方法、对象、封装和 `ArrayList` 是后续内容的重要基础。
+
+类、方法和对象部分接下来确实需要提高熟练度，但不能只是重复照着已有代码抄写。更有效的练习方式是：
+
+```text
+关掉示例独立重写
+-> 改变需求，不照搬原题
+-> 自己调试错误
+-> 增加边界处理
+-> 写完后解释每个类和方法的职责
+```
+
+适合当前阶段的练习：
+
+1. 完善学生管理系统：重复 ID 校验、修改和删除提示、输入异常处理。
+2. 独立编写图书管理系统：图书编号、名称、价格、借出状态和增删改查。
+3. 独立编写商品管理系统：商品编号、名称、库存、价格和库存修改。
+4. 把重复的按 ID 查找逻辑提取成一个方法。
+5. 尝试使用有参构造方法直接创建对象，比较它和 Setter 赋值的区别。
+
+判断是否真正熟练，不看敲了多少遍，而看能否做到：
+
+```text
+不看答案完成一个类似但不同的需求
+能解释为什么这样设计类和方法
+出现错误时能用 Debug 自己定位
+能处理空集合、重复数据和错误输入
+```
+
+当前路线建议：先继续推进课程，同时每学完一个章节做一个小程序巩固；不必等某个知识点“百分之百熟练”后才学习下一章。
